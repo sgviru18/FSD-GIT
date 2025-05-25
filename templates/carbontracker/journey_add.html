@@ -11,6 +11,7 @@
     </style>
 </head>
 <body>
+    
     <h1>Add New Journey</h1>
     <form method="post">
         {% csrf_token %}
@@ -94,6 +95,7 @@
                 fromMarker.addListener('dragend', calculateAndDisplayRoute);
                 calculateAndDisplayRoute();
             });
+            
 
             toAutocomplete.addListener("place_changed", () => {
                 const place = toAutocomplete.getPlace();
