@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Emission and Fuel Usage Charts</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Emission and Fuel Usage Charts</h1>
+
+    <h2>Emission per 100 km (kg CO2)</h2>
+    <canvas id="emissionChart" width="800" height="400"></canvas>
+
+    <h2>Fuel Usage per 100 km (gallons)</h2>
+    <canvas id="fuelChart" width="800" height="400"></canvas>
+
+    <p><a href="{% url 'home' %}">Back to Home</a></p>
+
+    <script>
+        const emissionData = {{ emission_data|safe }};
+        const fuelData = {{ fuel_data|safe }};
+
+        const emissionLabels = emissionData.map(item => item.label);
+        const emissionValues = emissionData.map(item => item.value);
+
+        const fuelLabels = fuelData.map(item => item.label);
+        const fuelValues = fuelData.map(item => item.value);
+
+        const ctxEmission = document.getElementById('emissionChart').getContext('2d');
+        const emissionChart = new Chart(ctxEmission, {
+            type: 'bar',
+            data: {
+                labels: emissionLabels,
+                datasets: [{
+                    label: 'Emission (kg CO2 per 100 km)',
+                    data: emissionValues,
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const ctxFuel = document.getElementById('fuelChart').getContext('2d');
+        const fuelChart = new Chart(ctxFuel, {
+            type: 'bar',
+            data: {
+                labels: fuelLabels,
+                datasets: [{
+                    label: 'Fuel Usage (gallons per 100 km)',
+                    data: fuelValues,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

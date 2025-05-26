@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fuel Calculator</title>
+</head>
+<body>
+    <h1>Fuel Calculator</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Calculate</button>
+    </form>
+
+    {% if result %}
+        <h2>Results</h2>
+        <p>Distance: {{ result.distance }} km</p>
+        <p>Vehicle: {{ result.vehicle.nickname }} ({{ result.vehicle.make }} {{ result.vehicle.model }})</p>
+        <p>Total Fuel Used: {{ result.total_fuel_used|floatformat:2 }} gallons</p>
+    {% endif %}
+
+    <p><a href="{% url 'home' %}">Back to Home</a></p>
+</body>
+</html>

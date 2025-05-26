@@ -45,6 +45,10 @@ class Route(models.Model):
     city_distance = models.FloatField()
     highway_distance = models.FloatField()
     total_distance = models.FloatField()
+    start_lat = models.FloatField(null=True, blank=True)
+    start_lng = models.FloatField(null=True, blank=True)
+    end_lat = models.FloatField(null=True, blank=True)
+    end_lng = models.FloatField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         self.total_distance = self.city_distance + self.highway_distance
@@ -56,31 +60,22 @@ class Route(models.Model):
 class Journey(models.Model):
     TRANSPORT_MODES = [
         ('car', 'Car'),
-        ('bus', 'Bus'),
-        ('walk/bike', 'Walk/Bike'),
-        ('skytrain', 'Skytrain'),
     ]
 
     route = models.ForeignKey(Route, on_delete=models.CASCADE)
     car = models.ForeignKey(Car, on_delete=models.CASCADE, null=True, blank=True)
     total_emission = models.FloatField()
     journey_date = models.DateField()
-    trans_mode = models.CharField(max_length=20, choices=TRANSPORT_MODES)
+    trans_mode = models.CharField(max_length=20, choices=TRANSPORT_MODES, default='car')
     route_save = models.BooleanField(default=False)
 
     def calculate_total_emission(self):
-        if self.trans_mode == 'car' and self.car:
+        if self.car:
             # Convert distances from km to miles for calculation consistency
             city_miles = self.route.city_distance / 1.609
             highway_miles = self.route.highway_distance / 1.609
             total_fuel_usage = (city_miles / self.car.city_km_per_gallon) + (highway_miles / self.car.highway_km_per_gallon)
             self.total_emission = total_fuel_usage * self.car.kg_per_gallon
-        elif self.trans_mode == 'bus':
-            self.total_emission = self.route.total_distance * 0.086
-        elif self.trans_mode == 'walk/bike':
-            self.total_emission = 0.0
-        elif self.trans_mode == 'skytrain':
-            self.total_emission = self.route.total_distance * 0.003
         else:
             self.total_emission = 0.0
 

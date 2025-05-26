@@ -2,89 +2,134 @@
 <html>
 <head>
     <title>Add Journey - CarbonOmitter</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
     <style>
         #map {
             height: 400px;
             width: 100%;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .form-section {
+            flex: 1;
+            min-width: 300px;
+        }
+        .map-section {
+            flex: 1;
+            min-width: 300px;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+        }
+        button[type="submit"] {
+            margin-top: 20px;
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button[type="submit"]:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
 <body>
     
     <h1>Add New Journey</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.non_field_errors }}
+    
+    <div class="form-container">
+        <div class="form-section">
+            <form id="journeyForm" method="post">
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+                
+                <!-- Original form fields -->
+                <label for="id_route">Route:</label>
+                {{ form.route.errors }}
+                {{ form.route }}
+                
+                <label for="id_car">Car:</label>
+                {{ form.car.errors }}
+                {{ form.car }}
+                
+                <label for="id_journey_date">Journey date:</label>
+                {{ form.journey_date.errors }}
+                {{ form.journey_date }}
+                
+                <label for="id_trans_mode">Transport mode:</label>
+                {{ form.trans_mode.errors }}
+                {{ form.trans_mode }}
+                
+                <!-- Map-related fields -->
+                <label for="start">Start Point:</label>
+                <input type="text" id="start" name="start" required>
+                
+                <label for="end">End Point:</label>
+                <input type="text" id="end" name="end" required>
+                
+                <label for="city_distance">City Distance (km):</label>
+                <input type="text" id="city_distance" name="city_distance" readonly>
+                
+                <label for="highway_distance">Highway Distance (km):</label>
+                <input type="text" id="highway_distance" name="highway_distance" readonly>
+                
+                <label for="id_route_save">Save route:</label>
+                {{ form.route_save.errors }}
+                {{ form.route_save }}
+                
+                <button type="submit">Save Journey</button>
+            </form>
+            <a href="{% url 'journey_list' %}">Back to Journeys</a>
+        </div>
+        
+        <div class="map-section">
+            <div id="map"></div>
+            {% if emission %}
+                <h3>Emission Details</h3>
+                <p>Total Emission: {{ emission }} kg CO2</p>
+            {% endif %}
+        </div>
+    </div>
 
-        <label for="from_address">From:</label>
-        <input id="from_address" name="from_address" type="text" placeholder="Enter start location" required>
-        <br/>
-
-        <label for="to_address">To:</label>
-        <input id="to_address" name="to_address" type="text" placeholder="Enter destination" required>
-        <br/>
-
-        <div id="map"></div>
-
-        <!-- Hidden inputs to store distances -->
-        <input type="hidden" id="city_distance" name="city_distance" value="0">
-        <input type="hidden" id="highway_distance" name="highway_distance" value="0">
-
-        <label for="id_car">Car:</label>
-        {{ form.car.errors }}
-        {{ form.car }}
-        <br/>
-        <label for="id_journey_date">Journey date:</label>
-        {{ form.journey_date.errors }}
-        {{ form.journey_date }}
-        <br/>
-        <label for="id_trans_mode">Trans mode:</label>
-        {{ form.trans_mode.errors }}
-        {{ form.trans_mode }}
-        <br/>
-        <label for="id_route_save">Route save:</label>
-        {{ form.route_save.errors }}
-        {{ form.route_save }}
-        <br/>
-        <button type="submit">Save Journey</button>
-    </form>
-    <a href="{% url 'journey_list' %}">Back to Journeys</a>
-
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places&callback=initMap" async defer></script>
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
     <script>
-        let map;
-        let fromMarker;
-        let toMarker;
-        let directionsService;
-        let directionsRenderer;
+        // Initialize the map
+        var map = L.map('map').setView([51.505, -0.09], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
 
-        function initMap() {
-            const defaultLocation = { lat: 49.2827, lng: -123.1207 }; // Example: Vancouver
+        var startMarker, endMarker;
 
-            map = new google.maps.Map(document.getElementById("map"), {
-                center: defaultLocation,
-                zoom: 10,
-            });
-
-            directionsService = new google.maps.DirectionsService();
-            directionsRenderer = new google.maps.DirectionsRenderer({ map: map });
-
-            const fromInput = document.getElementById("from_address");
-            const toInput = document.getElementById("to_address");
-
-            const fromAutocomplete = new google.maps.places.Autocomplete(fromInput);
-            const toAutocomplete = new google.maps.places.Autocomplete(toInput);
-
-            fromAutocomplete.bindTo("bounds", map);
-            toAutocomplete.bindTo("bounds", map);
-
-            fromAutocomplete.addListener("place_changed", () => {
-                const place = fromAutocomplete.getPlace();
-                if (!place.geometry) {
-                    alert("No details available for input: '" + place.name + "'");
-                    return;
+        // Function to perform geocoding
+        async function geocode(query) {
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    return {
+                        lat: parseFloat(data[0].lat),
+                        lng: parseFloat(data[0].lon)
+                    };
                 }
+<<<<<<< HEAD
                 if (fromMarker) fromMarker.setMap(null);
                 fromMarker = new google.maps.Marker({
                     map: map,
@@ -113,43 +158,120 @@
                 toMarker.addListener('dragend', calculateAndDisplayRoute);
                 calculateAndDisplayRoute();
             });
+=======
+            } catch (error) {
+                console.error('Geocoding error:', error);
+            }
+            return null;
+>>>>>>> upstream/main
         }
 
-        function calculateAndDisplayRoute() {
-            if (!fromMarker || !toMarker) return;
-
-            directionsService.route(
-                {
-                    origin: fromMarker.getPosition(),
-                    destination: toMarker.getPosition(),
-                    travelMode: google.maps.TravelMode.DRIVING,
-                },
-                (response, status) => {
-                    if (status === "OK") {
-                        directionsRenderer.setDirections(response);
-                        const route = response.routes[0];
-                        let cityDistance = 0;
-                        let highwayDistance = 0;
-
-                        // For simplicity, sum all legs distance as cityDistance
-                        // You can enhance this by analyzing step types for city/highway split
-                        route.legs.forEach(leg => {
-                            cityDistance += leg.distance.value; // in meters
-                        });
-
-                        // Convert meters to kilometers
-                        cityDistance = cityDistance / 1000;
-
-                        // Set distances in hidden inputs
-                        document.getElementById("city_distance").value = cityDistance.toFixed(2);
-                        document.getElementById("highway_distance").value = 0;
-
-                    } else {
-                        alert("Directions request failed due to " + status);
+        // Update markers from input fields
+        function updateMarkerFromInput(inputId, markerVar, popupText) {
+            var input = document.getElementById(inputId);
+            input.addEventListener('input', async function() {
+                var val = input.value.trim();
+                var parts = val.split(',');
+                let latlng = null;
+                
+                if (parts.length === 2) {
+                    var lat = parseFloat(parts[0]);
+                    var lng = parseFloat(parts[1]);
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        latlng = L.latLng(lat, lng);
+                    }
+                } else if (val.length > 0) {
+                    latlng = await geocode(val);
+                    if (latlng === null) {
+                        alert('Location not found: ' + val);
+                        return;
                     }
                 }
-            );
+                
+                if (latlng) {
+                    if (window[markerVar]) {
+                        window[markerVar].setLatLng(latlng);
+                        window[markerVar].openPopup();
+                    } else {
+                        window[markerVar] = L.marker(latlng, {draggable:true}).addTo(map);
+                        window[markerVar].bindPopup(popupText).openPopup();
+                        window[markerVar].on('dragend', function(event) {
+                            var position = event.target.getLatLng();
+                            input.value = position.lat.toFixed(5) + ", " + position.lng.toFixed(5);
+                            updateDistance();
+                        });
+                    }
+                    updateDistance();
+                    map.panTo(latlng);
+                }
+            });
         }
+
+        // Calculate and update distance between markers
+        function updateDistance() {
+            if (startMarker && endMarker) {
+                var latlngs = [startMarker.getLatLng(), endMarker.getLatLng()];
+                var distance = latlngs[0].distanceTo(latlngs[1]) / 1000; // in km
+                document.getElementById('city_distance').value = distance.toFixed(2);
+                document.getElementById('highway_distance').value = 0; // Default to 0 for highway distance
+                
+                // Auto-fill the route field if empty
+                var routeField = document.getElementById('id_route');
+                if (!routeField.value) {
+                    var start = document.getElementById('start').value;
+                    var end = document.getElementById('end').value;
+                    if (start && end) {
+                        routeField.value = start + ' to ' + end;
+                    }
+                }
+            }
+        }
+
+        // Initialize map click handler
+        map.on('click', function(e) {
+            if (!startMarker) {
+                startMarker = L.marker(e.latlng, {draggable:true}).addTo(map);
+                startMarker.bindPopup("Start Point").openPopup();
+                document.getElementById('start').value = e.latlng.lat.toFixed(5) + ", " + e.latlng.lng.toFixed(5);
+                startMarker.on('dragend', function(event) {
+                    var position = event.target.getLatLng();
+                    document.getElementById('start').value = position.lat.toFixed(5) + ", " + position.lng.toFixed(5);
+                    updateDistance();
+                });
+            } else if (!endMarker) {
+                endMarker = L.marker(e.latlng, {draggable:true}).addTo(map);
+                endMarker.bindPopup("End Point").openPopup();
+                document.getElementById('end').value = e.latlng.lat.toFixed(5) + ", " + e.latlng.lng.toFixed(5);
+                endMarker.on('dragend', function(event) {
+                    var position = event.target.getLatLng();
+                    document.getElementById('end').value = position.lat.toFixed(5) + ", " + position.lng.toFixed(5);
+                    updateDistance();
+                });
+                updateDistance();
+            } else {
+                alert("Both start and end points are already set. Drag markers to change location.");
+            }
+        });
+
+        // Initialize input listeners
+        updateMarkerFromInput('start', 'startMarker', 'Start Point');
+        updateMarkerFromInput('end', 'endMarker', 'End Point');
+
+        // Initialize markers if inputs have values on page load
+        window.onload = function() {
+            var startInput = document.getElementById('start');
+            var endInput = document.getElementById('end');
+            if (startInput.value) {
+                updateMarkerFromInput('start', 'startMarker', 'Start Point');
+                var event = new Event('input');
+                startInput.dispatchEvent(event);
+            }
+            if (endInput.value) {
+                updateMarkerFromInput('end', 'endMarker', 'End Point');
+                var event = new Event('input');
+                endInput.dispatchEvent(event);
+            }
+        };
     </script>
 </body>
 </html>

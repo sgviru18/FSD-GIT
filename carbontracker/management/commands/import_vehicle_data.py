@@ -6,7 +6,7 @@ class Command(BaseCommand):
     help = 'Import vehicle data from megaDataPack.sqlite into Car model'
 
     def handle(self, *args, **options):
-        db_path = 'django_carbonomitter/data/megaDataPack.sqlite'
+        db_path = 'data/megaDataPack.sqlite'
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         cursor.execute('SELECT make, model, year, city08, highway08, drive, displ, trany, VClass, fuelType FROM VehicleData')

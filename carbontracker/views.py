@@ -18,7 +18,15 @@ def journey_list(request):
     journeys = Journey.objects.all()
     return render(request, 'carbontracker/journey_list.html', {'journeys': journeys})
 
+from django.forms import DateField
+from django.forms.widgets import DateInput
+
 class JourneyForm(forms.ModelForm):
+    journey_date = DateField(
+        input_formats=['%d-%m-%Y', '%Y-%m-%d'],
+        widget=DateInput(format='%d-%m-%Y', attrs={'placeholder': 'dd-mm-yyyy'})
+    )
+
     class Meta:
         model = Journey
         fields = ['route', 'car', 'journey_date', 'trans_mode', 'route_save']
@@ -32,18 +40,28 @@ def journey_add(request):
     from .models import Route
     if request.method == 'POST':
         form = JourneyForm(request.POST)
-        from_address = request.POST.get('from_address')
-        to_address = request.POST.get('to_address')
+        start = request.POST.get('start')
+        end = request.POST.get('end')
         city_distance = request.POST.get('city_distance')
         highway_distance = request.POST.get('highway_distance')
         if form.is_valid():
             journey = form.save(commit=False)
-            # Create or update Route with distances
+            # Create or update Route with distances and coordinates
             route = journey.route
             if route:
                 try:
                     route.city_distance = float(city_distance)
                     route.highway_distance = float(highway_distance)
+                    if start:
+                        lat_lng = start.split(',')
+                        if len(lat_lng) == 2:
+                            route.start_lat = float(lat_lng[0].strip())
+                            route.start_lng = float(lat_lng[1].strip())
+                    if end:
+                        lat_lng = end.split(',')
+                        if len(lat_lng) == 2:
+                            route.end_lat = float(lat_lng[0].strip())
+                            route.end_lng = float(lat_lng[1].strip())
                     route.save()
                 except (ValueError, TypeError):
                     pass

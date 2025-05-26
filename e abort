@@ -1,0 +1,18 @@
+[33m52df3ce[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m HEAD@{0}: commit: adding mao
+[33m223f34b[m HEAD@{1}: commit: modified it
+[33maed8b9e[m HEAD@{2}: commit: added several new things
+[33m3f20c1f[m HEAD@{3}: commit: new feature
+[33m9b7893d[m HEAD@{4}: commit: some changes
+[33mbced56a[m HEAD@{5}: commit: added django
+[33m440e388[m HEAD@{6}: commit: added database
+[33m0c12f88[m HEAD@{7}: pull origin main --allow-unrelated-histories: Merge made by the 'ort' strategy.
+[33m308a4c5[m HEAD@{8}: commit: added tracker
+[33m243284f[m HEAD@{9}: commit: added data file
+[33m4a56e44[m HEAD@{10}: commit: utility
+[33mef458c9[m HEAD@{11}: commit: added route_list
+[33m1142b1f[m HEAD@{12}: commit: added vehicle_list
+[33mf8c40ad[m HEAD@{13}: commit: added vehicle add n to display journey list
+[33m6867292[m HEAD@{14}: commit: added route_add
+[33m0475b78[m HEAD@{15}: commit: added journey add
+[33m3864ee3[m HEAD@{16}: pull origin main --allow-unrelated-histories: Merge made by the 'ort' strategy.
+[33m5028d75[m HEAD@{17}: commit (initial): added html
