@@ -49,6 +49,7 @@
     </style>
 </head>
 <body>
+    
     <h1>Add New Journey</h1>
     
     <div class="form-container">
@@ -128,10 +129,41 @@
                         lng: parseFloat(data[0].lon)
                     };
                 }
+<<<<<<< HEAD
+                if (fromMarker) fromMarker.setMap(null);
+                fromMarker = new google.maps.Marker({
+                    map: map,
+                    position: place.geometry.location,
+                    label: "A",
+                    draggable: true,
+                });
+                fromMarker.addListener('dragend', calculateAndDisplayRoute);
+                calculateAndDisplayRoute();
+            });
+            
+
+            toAutocomplete.addListener("place_changed", () => {
+                const place = toAutocomplete.getPlace();
+                if (!place.geometry) {
+                    alert("No details available for input: '" + place.name + "'");
+                    return;
+                }
+                if (toMarker) toMarker.setMap(null);
+                toMarker = new google.maps.Marker({
+                    map: map,
+                    position: place.geometry.location,
+                    label: "B",
+                    draggable: true,
+                });
+                toMarker.addListener('dragend', calculateAndDisplayRoute);
+                calculateAndDisplayRoute();
+            });
+=======
             } catch (error) {
                 console.error('Geocoding error:', error);
             }
             return null;
+>>>>>>> upstream/main
         }
 
         // Update markers from input fields
