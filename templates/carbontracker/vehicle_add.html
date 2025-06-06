@@ -1,40 +1,62 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8" />
     <title>Add Vehicle - CarbonOmitter</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Add New Vehicle</h1>
-<!--button for searching vehicles--> 
-    <form method="get" action="">
-        {{ search_form.as_p }}
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-6 font-sans">
 
-        <button type="submit">Search</button>
-    </form>
+    <header class="w-full max-w-3xl mb-8">
+        <h1 class="text-4xl font-bold text-gray-800 mb-6">Add New Vehicle</h1>
+    </header>
 
-    <form method="post" action="">
-        {% csrf_token %}
-        <label for="vehicle_id">Select Vehicle:</label>
-        <select name="vehicle_id" id="vehicle_id" required>
-            <option value="">-- Select a vehicle --</option>
-            {% for vehicle in vehicles %}
-                <option value="{{ vehicle.id }}">{{ vehicle.make }} {{ vehicle.model }} ({{ vehicle.year }})</option>
-            {% endfor %}
-        </select>
-        <br><br>
-        <label for="nickname">Nickname (optional):</label>
-        <input type="text" name="nickname" id="nickname" placeholder="Enter a nickname for your vehicle">
-        <br><br>
-        <label for="maintenance_status">Maintenance Status:</label>
-        <select name="maintenance_status" id="maintenance_status" required>
-            <option value="good">Good</option>
-            <option value="average">Average</option>
-            <option value="poor">Poor</option>
-        </select>
-        <br><br>
-        <button type="submit">Add Vehicle</button>
-    </form>
+    <main class="w-full max-w-3xl bg-white rounded shadow p-6">
+        <form method="get" action="" class="mb-6">
+            <div class="mb-4">
+                {{ search_form.as_p }}
+            </div>
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition">
+                Search
+            </button>
+        </form>
 
-    <a href="{% url 'vehicle_list' %}">Back to Vehicles</a>
+        <form method="post" action="">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label for="vehicle_id" class="block font-semibold mb-1">Select Vehicle:</label>
+                <select name="vehicle_id" id="vehicle_id" required class="w-full border border-gray-300 rounded px-3 py-2">
+                    <option value="">-- Select a vehicle --</option>
+                    {% for vehicle in vehicles %}
+                        <option value="{{ vehicle.id }}">{{ vehicle.make }} {{ vehicle.model }} ({{ vehicle.year }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label for="nickname" class="block font-semibold mb-1">Nickname (optional):</label>
+                <input type="text" name="nickname" id="nickname" placeholder="Enter a nickname for your vehicle" class="w-full border border-gray-300 rounded px-3 py-2" />
+            </div>
+
+            <div class="mb-6">
+                <label for="maintenance_status" class="block font-semibold mb-1">Maintenance Status:</label>
+                <select name="maintenance_status" id="maintenance_status" required class="w-full border border-gray-300 rounded px-3 py-2">
+                    <option value="good">Good</option>
+                    <option value="average">Average</option>
+                    <option value="poor">Poor</option>
+                </select>
+            </div>
+
+            <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded shadow hover:bg-green-700 transition">
+                Add Vehicle
+            </button>
+        </form>
+    </main>
+
+    <footer class="w-full max-w-3xl mt-8 text-left">
+        <a href="{% url 'vehicle_list' %}" class="text-blue-600 hover:underline">← Back to Vehicles</a>
+    </footer>
+
 </body>
 </html>

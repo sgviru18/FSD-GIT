@@ -1,18 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8" />
     <title>Journeys - CarbonOmitter</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Journeys</h1>
-    <a href="{% url 'journey_add' %}">Add New Journey</a>
-    <ul>
-        {% for journey in journeys %}
-            <li>{{ journey.journey_date }} - {{ journey.trans_mode }} - Emission: {{ journey.total_emission }}</li>
-        {% empty %}
-            <li>No journeys found.</li>
-        {% endfor %}
-    </ul>
-    <a href="{% url 'home' %}">Back to Home</a>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-6 font-sans">
+
+    <header class="w-full max-w-5xl mb-8">
+        <h1 class="text-4xl font-bold text-gray-800 mb-4">Journeys</h1>
+        <a href="{% url 'journey_add' %}" class="inline-block bg-green-600 text-white px-5 py-2 rounded shadow hover:bg-green-700 transition">
+            + Add New Journey
+        </a>
+    </header>
+
+    <main class="w-full max-w-5xl bg-white rounded shadow p-6">
+        {% if journeys %}
+        <table class="min-w-full border-collapse border border-gray-300">
+            <thead>
+                <tr class="bg-green-600 text-white">
+                    <th class="border border-gray-300 px-4 py-2 text-left">Date</th>
+                    <th class="border border-gray-300 px-4 py-2 text-left">Transport Mode</th>
+                    <th class="border border-gray-300 px-4 py-2 text-right">Emission (kg CO2)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for journey in journeys %}
+                <tr class="hover:bg-green-50">
+                    <td class="border border-gray-300 px-4 py-2">{{ journey.journey_date }}</td>
+                    <td class="border border-gray-300 px-4 py-2">{{ journey.trans_mode }}</td>
+                    <td class="border border-gray-300 px-4 py-2 text-right">{{ journey.total_emission|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-center text-gray-600">No journeys found.</p>
+        {% endif %}
+    </main>
+
+    <footer class="w-full max-w-5xl mt-8 text-right">
+        <a href="{% url 'home' %}" class="text-green-600 hover:underline">← Back to Home</a>
+    </footer>
+
 </body>
 </html>

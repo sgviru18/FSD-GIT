@@ -1,24 +1,50 @@
-
-<!--
-   This is a multi-line comment.
-   You can use it to explain complex code.
--->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <!-- it is the title of the vhicle -->
+    <meta charset="UTF-8" />
     <title>Vehicles - CarbonOmitter</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Vehicles</h1>
-    <a href="{% url 'vehicle_add' %}">Add New Vehicle</a>
-    <ul>
-        {% for vehicle in vehicles %}
-            <li>{{ vehicle.nickname }} - {{ vehicle.make }} {{ vehicle.model }} ({{ vehicle.year }})</li>
-        {% empty %}
-            <li>No vehicles found.</li>
-        {% endfor %}
-    </ul>
-    <a href="{% url 'home' %}">Back to Home</a>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-6 font-sans">
+
+    <header class="w-full max-w-5xl mb-8">
+        <h1 class="text-4xl font-bold text-gray-800 mb-4">Vehicles</h1>
+        <a href="{% url 'vehicle_add' %}" class="inline-block bg-blue-600 text-white px-5 py-2 rounded shadow hover:bg-blue-700 transition">
+            + Add New Vehicle
+        </a>
+    </header>
+
+    <main class="w-full max-w-5xl bg-white rounded shadow p-6">
+        {% if vehicles %}
+        <table class="min-w-full border-collapse border border-gray-300">
+            <thead>
+                <tr class="bg-blue-600 text-white">
+                    <th class="border border-gray-300 px-4 py-2 text-left">Nickname</th>
+                    <th class="border border-gray-300 px-4 py-2 text-left">Make</th>
+                    <th class="border border-gray-300 px-4 py-2 text-left">Model</th>
+                    <th class="border border-gray-300 px-4 py-2 text-left">Year</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vehicle in vehicles %}
+                <tr class="hover:bg-blue-50">
+                    <td class="border border-gray-300 px-4 py-2">{{ vehicle.nickname }}</td>
+                    <td class="border border-gray-300 px-4 py-2">{{ vehicle.make }}</td>
+                    <td class="border border-gray-300 px-4 py-2">{{ vehicle.model }}</td>
+                    <td class="border border-gray-300 px-4 py-2">{{ vehicle.year }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-center text-gray-600">No vehicles found.</p>
+        {% endif %}
+    </main>
+
+    <footer class="w-full max-w-5xl mt-8 text-right">
+        <a href="{% url 'home' %}" class="text-blue-600 hover:underline">← Back to Home</a>
+    </footer>
+
 </body>
 </html>
