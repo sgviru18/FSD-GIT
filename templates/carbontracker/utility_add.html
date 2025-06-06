@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Utility Bill - CarbonOmitter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        form {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+        button[type="submit"] {
+            margin-top: 20px;
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+        button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        a {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #2980b9;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Add Utility Bill</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="id_bill_type">Bill Type:</label>
+        <select id="id_bill_type" name="bill_type" required>
+            <option value="Electricity">Electricity</option>
+            <option value="Other">Other</option>
+        </select>
+
+        <label for="id_bill_amount">Bill Amount:</label>
+        <input type="number" step="0.01" id="id_bill_amount" name="bill_amount" required>
+
+        <label for="id_num_people">Number of People:</label>
+        <input type="number" id="id_num_people" name="num_people" required>
+
+        <label for="id_bill_start_date">Bill Start Date:</label>
+        <input type="date" id="id_bill_start_date" name="bill_start_date" required>
+
+        <label for="id_bill_end_date">Bill End Date:</label>
+        <input type="date" id="id_bill_end_date" name="bill_end_date" required>
+
+        <button type="submit">Add Utility Bill</button>
+    </form>
+    <a href="{% url 'utility_list' %}">Back to Utility List</a>
+</body>
+</html>

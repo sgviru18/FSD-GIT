@@ -53,17 +53,35 @@
         <canvas id="fuelChart" width="800" height="400"></canvas>
     </div>
 
+    <div class="chart-container">
+        <h2>Utility Emissions</h2>
+        <canvas id="utilityEmissionChart" width="800" height="400"></canvas>
+    </div>
+
     <a href="{% url 'home' %}">Back to Home</a>
 
     <script>
         const emissionData = {{ emission_data|safe }};
         const fuelData = {{ fuel_data|safe }};
+        const utilityEmissionData = [
+            {
+                label: 'Total Emission',
+                value: {{ emission_data|safe }}.find(item => item.label === 'Utilities (Total Emission)')?.value || 0
+            },
+            {
+                label: 'Emission per Person',
+                value: {{ emission_data|safe }}.find(item => item.label === 'Utilities (Emission per Person)')?.value || 0
+            }
+        ];
 
         const emissionLabels = emissionData.map(item => item.label);
         const emissionValues = emissionData.map(item => item.value);
 
         const fuelLabels = fuelData.map(item => item.label);
         const fuelValues = fuelData.map(item => item.value);
+
+        const utilityLabels = utilityEmissionData.map(item => item.label);
+        const utilityValues = utilityEmissionData.map(item => item.value);
 
         const ctxEmission = document.getElementById('emissionChart').getContext('2d');
         const emissionChart = new Chart(ctxEmission, {
@@ -98,6 +116,29 @@
                     data: fuelValues,
                     backgroundColor: 'rgba(54, 162, 235, 0.6)',
                     borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const ctxUtility = document.getElementById('utilityEmissionChart').getContext('2d');
+        const utilityEmissionChart = new Chart(ctxUtility, {
+            type: 'bar',
+            data: {
+                labels: utilityLabels,
+                datasets: [{
+                    label: 'Utility Emissions (kg CO2)',
+                    data: utilityValues,
+                    backgroundColor: 'rgba(255, 206, 86, 0.6)',
+                    borderColor: 'rgba(255, 206, 86, 1)',
                     borderWidth: 1
                 }]
             },

@@ -236,6 +236,16 @@ def emission_fuel_charts(request):
         emission_by_make[make_label] += emission_per_100km
         fuel_by_make[make_label] += fuel_used_per_100km
         count_by_make[make_label] += 1
+
+    # Aggregate utility emissions
+    utilities = Utility.objects.all()
+    total_utility_emission = 0.0
+    total_utility_emission_per_person = 0.0
+    utility_count = utilities.count()
+    if utility_count > 0:
+        total_utility_emission = sum(u.total_emission for u in utilities)
+        total_utility_emission_per_person = sum(u.emission_per_person for u in utilities) / utility_count
+
     emission_data = []
     fuel_data = []
     for make in emission_by_make:
@@ -249,6 +259,17 @@ def emission_fuel_charts(request):
             'label': make,
             'value': avg_fuel,
         })
+
+    # Add utility emissions as a separate entry
+    emission_data.append({
+        'label': 'Utilities (Total Emission)',
+        'value': total_utility_emission,
+    })
+    emission_data.append({
+        'label': 'Utilities (Emission per Person)',
+        'value': total_utility_emission_per_person,
+    })
+
     emission_data_json = json.dumps(emission_data)
     fuel_data_json = json.dumps(fuel_data)
     return render(request, 'carbontracker/emission_fuel_charts.html', {

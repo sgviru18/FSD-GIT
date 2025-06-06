@@ -69,7 +69,7 @@
                 
                 <label for="id_journey_date">Journey date:</label>
                 {{ form.journey_date.errors }}
-                {{ form.journey_date }}
+                <input type="date" id="id_journey_date" name="journey_date" value="{{ form.journey_date.value|default_if_none:'' }}" required>
                 
                 <label for="id_trans_mode">Transport mode:</label>
                 {{ form.trans_mode.errors }}
