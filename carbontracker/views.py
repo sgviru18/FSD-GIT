@@ -1,7 +1,40 @@
 from django.shortcuts import render, redirect
 from .models import Journey, Car, Route, Utility
 from django import forms
-from django.db.models import Q
+from django.db.models import Q, Sum, F, FloatField, Value as V, IntegerField
+from django.db.models.functions import Coalesce, Cast
+
+def emission_ranking(request):
+    # Aggregate emissions by start_state
+    state_emissions = Route.objects.values('start_state').annotate(
+        total_emission=Coalesce(
+            Cast(Sum('journey__total_emission'), FloatField()), 
+            V(0, output_field=FloatField())
+        )
+    ).order_by('-total_emission')
+
+    # Aggregate emissions by start_city
+    city_emissions = Route.objects.values('start_state', 'start_city').annotate(
+        total_emission=Coalesce(
+            Cast(Sum('journey__total_emission'), FloatField()), 
+            V(0, output_field=FloatField())
+        )
+    ).order_by('-total_emission')
+
+    # Aggregate emissions by start_area
+    area_emissions = Route.objects.values('start_state', 'start_city', 'start_area').annotate(
+        total_emission=Coalesce(
+            Cast(Sum('journey__total_emission'), FloatField()), 
+            V(0, output_field=FloatField())
+        )
+    ).order_by('-total_emission')
+
+    context = {
+        'state_emissions': state_emissions,
+        'city_emissions': city_emissions,
+        'area_emissions': area_emissions,
+    }
+    return render(request, 'carbontracker/emission_ranking.html', context)
 
 class CarForm(forms.ModelForm):
     class Meta:

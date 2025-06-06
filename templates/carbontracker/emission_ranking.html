@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Emission Ranking</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f0f4f8;
+            color: #333;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px 20px;
+            text-align: left;
+        }
+        th {
+            background-color: #4a90e2;
+            color: white;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+        tbody tr {
+            background-color: #f9fbfd;
+            transition: background-color 0.3s ease;
+        }
+        tbody tr:hover {
+            background-color: #e1e9f8;
+        }
+        tbody tr td:first-child {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        caption {
+            font-size: 1.8em;
+            font-weight: 700;
+            margin: 15px 0;
+            color: #34495e;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        a.back-link {
+            display: block;
+            width: 90%;
+            max-width: 1200px;
+            margin: 20px auto;
+            text-align: right;
+            text-decoration: none;
+            color: #4a90e2;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+        a.back-link:hover {
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Emission Ranking</h1>
+
+        <h2>State Emissions</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>State</th>
+                    <th>Total Emission (kg CO2)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in state_emissions %}
+                <tr>
+                    <td>{{ item.start_state|default:"Unknown" }}</td>
+                    <td>{{ item.total_emission|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="2">No data available</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>City Emissions</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>State</th>
+                    <th>City</th>
+                    <th>Total Emission (kg CO2)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in city_emissions %}
+                <tr>
+                    <td>{{ item.start_state|default:"Unknown" }}</td>
+                    <td>{{ item.start_city|default:"Unknown" }}</td>
+                    <td>{{ item.total_emission|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3">No data available</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>Area Emissions</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>State</th>
+                    <th>City</th>
+                    <th>Area</th>
+                    <th>Total Emission (kg CO2)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in area_emissions %}
+                <tr>
+                    <td>{{ item.start_state|default:"Unknown" }}</td>
+                    <td>{{ item.start_city|default:"Unknown" }}</td>
+                    <td>{{ item.start_area|default:"Unknown" }}</td>
+                    <td>{{ item.total_emission|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4">No data available</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <a href="{% url 'home' %}" class="back-link">← Back to Home</a>
+    </div>
+</body>
+</html>

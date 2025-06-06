@@ -40,6 +40,8 @@ class Car(models.Model):
     def __str__(self):
         return f"{self.nickname} ({self.make} {self.model} {self.year})"
 
+import requests
+
 class Route(models.Model):
     name = models.CharField(max_length=200)
     city_distance = models.FloatField()
@@ -47,11 +49,36 @@ class Route(models.Model):
     total_distance = models.FloatField()
     start_lat = models.FloatField(null=True, blank=True)
     start_lng = models.FloatField(null=True, blank=True)
+    start_state = models.CharField(max_length=100, null=True, blank=True)
+    start_city = models.CharField(max_length=100, null=True, blank=True)
+    start_area = models.CharField(max_length=100, null=True, blank=True)
     end_lat = models.FloatField(null=True, blank=True)
     end_lng = models.FloatField(null=True, blank=True)
+    end_state = models.CharField(max_length=100, null=True, blank=True)
+    end_city = models.CharField(max_length=100, null=True, blank=True)
+    end_area = models.CharField(max_length=100, null=True, blank=True)
+
+    def reverse_geocode(self, lat, lng):
+        try:
+            url = f"https://nominatim.openstreetmap.org/reverse?format=json&lat={lat}&lon={lng}&zoom=10&addressdetails=1"
+            response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+            if response.status_code == 200:
+                data = response.json()
+                address = data.get('address', {})
+                state = address.get('state', '')
+                city = address.get('city', '') or address.get('town', '') or address.get('village', '')
+                area = address.get('suburb', '') or address.get('neighbourhood', '') or address.get('county', '')
+                return state, city, area
+        except Exception as e:
+            print(f"Reverse geocoding error: {e}")
+        return '', '', ''
 
     def save(self, *args, **kwargs):
         self.total_distance = self.city_distance + self.highway_distance
+        if self.start_lat and self.start_lng:
+            self.start_state, self.start_city, self.start_area = self.reverse_geocode(self.start_lat, self.start_lng)
+        if self.end_lat and self.end_lng:
+            self.end_state, self.end_city, self.end_area = self.reverse_geocode(self.end_lat, self.end_lng)
         super().save(*args, **kwargs)
 
     def __str__(self):
