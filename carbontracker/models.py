@@ -130,7 +130,7 @@ class Journey(models.Model):
 
 class Utility(models.Model):
     bill_type = models.CharField(max_length=50)
-    bill_amount = models.FloatField()
+    units = models.FloatField()
     total_emission = models.FloatField()
     num_people = models.IntegerField()
     emission_per_person = models.FloatField()
@@ -145,9 +145,17 @@ class Utility(models.Model):
             return 56.1
 
     def calculate_emissions(self):
+        from datetime import timedelta
         emission_unit = self.determine_unit()
-        self.total_emission = self.bill_amount * emission_unit
-        self.emission_per_person = (self.total_emission / self.num_people) / self.days
+        self.total_emission = self.units * emission_unit
+        if self.bill_start_date and self.bill_end_date:
+            self.days = (self.bill_end_date - self.bill_start_date).days + 1
+        else:
+            self.days = 1
+        if self.num_people and self.num_people > 0 and self.days > 0:
+            self.emission_per_person = (self.total_emission / self.num_people) / self.days
+        else:
+            self.emission_per_person = 0
 
     def save(self, *args, **kwargs):
         self.calculate_emissions()

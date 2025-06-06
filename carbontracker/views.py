@@ -47,8 +47,13 @@ class VehicleSearchForm(forms.Form):
 def home(request):
     return render(request, 'carbontracker/home.html')
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 def journey_list(request):
-    journeys = Journey.objects.all()
+    journeys = Journey.objects.select_related('car').filter(car__isnull=False).exclude(car__nickname__exact='')
+    logger.debug(f"Filtered journeys count: {journeys.count()}")
     return render(request, 'carbontracker/journey_list.html', {'journeys': journeys})
 
 from django.forms import DateField
@@ -176,13 +181,26 @@ def route_add(request):
         form = RouteForm()
     return render(request, 'carbontracker/route_add.html', {'form': form})
 
+from django import forms
+
+class UtilityForm(forms.ModelForm):
+    class Meta:
+        model = Utility
+        fields = ['bill_type', 'units', 'num_people', 'bill_start_date', 'bill_end_date']
+
 def utility_list(request):
     utilities = Utility.objects.all()
     return render(request, 'carbontracker/utility_list.html', {'utilities': utilities})
 
 def utility_add(request):
-    # Placeholder for adding utility logic
-    return render(request, 'carbontracker/utility_add.html')
+    if request.method == 'POST':
+        form = UtilityForm(request.POST)
+        if form.is_valid():
+            utility = form.save()
+            return redirect('utility_list')
+    else:
+        form = UtilityForm()
+    return render(request, 'carbontracker/utility_add.html', {'form': form})
 
 class FuelCalculatorForm(forms.Form):
     distance = forms.FloatField(label='Distance (km)', min_value=0)

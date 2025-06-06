@@ -21,11 +21,13 @@
             </button>
         </form>
 
-        {% if result %}
+    {% if result %}
         <section class="mt-8 bg-green-50 border border-green-300 rounded p-4">
             <h2 class="text-2xl font-semibold mb-4">Results</h2>
             <p><strong>Distance:</strong> {{ result.distance }} km</p>
             <p><strong>Vehicle:</strong> {{ result.vehicle.nickname }} ({{ result.vehicle.make }} {{ result.vehicle.model }})</p>
+            <p><strong>Vehicle Age:</strong> {{ result.vehicle_age }} years</p>
+            <p><strong>Degradation Factor:</strong> {{ result.degradation_factor|floatformat:2 }}</p>
             <p><strong>Total Fuel Used:</strong> {{ result.total_fuel_used|floatformat:2 }} gallons</p>
         </section>
         {% endif %}

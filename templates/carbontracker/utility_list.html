@@ -1,18 +1,38 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8" />
     <title>Utilities - CarbonOmitter</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Utilities</h1>
-    <a href="{% url 'utility_add' %}">Add New Utility Bill</a>
-    <ul>
-        {% for utility in utilities %}
-            <li>{{ utility.bill_type }} bill from {{ utility.bill_start_date }} to {{ utility.bill_end_date }} - Total Emission: {{ utility.total_emission }}</li>
-        {% empty %}
-            <li>No utility bills found.</li>
-        {% endfor %}
-    </ul>
-    <a href="{% url 'home' %}">Back to Home</a>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-6 font-sans">
+
+    <header class="w-full max-w-5xl mb-8">
+        <h1 class="text-4xl font-bold text-gray-800 mb-6">Utilities</h1>
+        <a href="{% url 'utility_add' %}" class="inline-block bg-blue-600 text-white px-5 py-2 rounded shadow hover:bg-blue-700 transition">
+            + Add New Utility Bill
+        </a>
+    </header>
+
+    <main class="w-full max-w-5xl bg-white rounded shadow p-6">
+        {% if utilities %}
+        <ul class="list-disc list-inside space-y-3 text-gray-700">
+            {% for utility in utilities %}
+            <li class="border border-gray-300 rounded p-4 hover:bg-blue-50 transition">
+                <strong>{{ utility.bill_type }}</strong> bill from {{ utility.bill_start_date }} to {{ utility.bill_end_date }} - 
+                <span class="text-green-600 font-semibold">Total Emission: {{ utility.total_emission }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-center text-gray-600">No utility bills found.</p>
+        {% endif %}
+    </main>
+
+    <footer class="w-full max-w-5xl mt-8 text-right">
+        <a href="{% url 'home' %}" class="text-blue-600 hover:underline">← Back to Home</a>
+    </footer>
+
 </body>
 </html>
