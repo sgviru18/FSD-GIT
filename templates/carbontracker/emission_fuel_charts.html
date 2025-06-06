@@ -3,17 +3,57 @@
 <head>
     <title>Emission and Fuel Usage Charts</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .chart-container {
+            width: 90%;
+            max-width: 900px;
+            margin: 30px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+        }
+        a {
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+            color: #2980b9;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
     <h1>Emission and Fuel Usage Charts</h1>
 
-    <h2>Emission per 100 km (kg CO2)</h2>
-    <canvas id="emissionChart" width="800" height="400"></canvas>
+    <div class="chart-container">
+        <h2>Emission per 100 km (kg CO2)</h2>
+        <canvas id="emissionChart" width="800" height="400"></canvas>
+    </div>
 
-    <h2>Fuel Usage per 100 km (gallons)</h2>
-    <canvas id="fuelChart" width="800" height="400"></canvas>
+    <div class="chart-container">
+        <h2>Fuel Usage per 100 km (gallons)</h2>
+        <canvas id="fuelChart" width="800" height="400"></canvas>
+    </div>
 
-    <p><a href="{% url 'home' %}">Back to Home</a></p>
+    <a href="{% url 'home' %}">Back to Home</a>
 
     <script>
         const emissionData = {{ emission_data|safe }};

@@ -61,6 +61,11 @@ class Journey(models.Model):
     TRANSPORT_MODES = [
         ('car', 'Car'),
     ]
+    DRIVING_CONDITIONS_CHOICES = [
+        ('normal', 'Normal'),
+        ('heavy_traffic', 'Heavy Traffic'),
+        ('off_road', 'Off Road'),
+    ]
 
     route = models.ForeignKey(Route, on_delete=models.CASCADE)
     car = models.ForeignKey(Car, on_delete=models.CASCADE, null=True, blank=True)
@@ -68,6 +73,7 @@ class Journey(models.Model):
     journey_date = models.DateField()
     trans_mode = models.CharField(max_length=20, choices=TRANSPORT_MODES, default='car')
     route_save = models.BooleanField(default=False)
+    driving_conditions = models.CharField(max_length=20, choices=DRIVING_CONDITIONS_CHOICES, default='normal')
 
     def calculate_total_emission(self):
         if self.car:

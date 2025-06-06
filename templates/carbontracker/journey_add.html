@@ -74,6 +74,10 @@
                 <label for="id_trans_mode">Transport mode:</label>
                 {{ form.trans_mode.errors }}
                 {{ form.trans_mode }}
+
+                <label for="id_driving_conditions">Driving Conditions:</label>
+                {{ form.driving_conditions.errors }}
+                {{ form.driving_conditions }}
                 
                 <!-- Map-related fields -->
                 <label for="start">Start Point:</label>
@@ -94,20 +98,20 @@
                 {{ form.route_save.errors }}
                 {{ form.route_save }}
                 
-            <button type="submit">Save Journey</button>
-            <button type="button" id="testCreateRouteBtn">Test Create Route</button>
-        </form>
-        <a href="{% url 'journey_list' %}">Back to Journeys</a>
+                <button type="submit">Save Journey</button>
+                <button type="button" id="testCreateRouteBtn">Test Create Route</button>
+            </form>
+            <a href="{% url 'journey_list' %}">Back to Journeys</a>
+        </div>
+        
+        <div class="map-section">
+            <div id="map"></div>
+            {% if emission %}
+                <h3>Emission Details</h3>
+                <p>Total Emission: {{ emission }} kg CO2</p>
+            {% endif %}
+        </div>
     </div>
-    
-    <div class="map-section">
-        <div id="map"></div>
-        {% if emission %}
-            <h3>Emission Details</h3>
-            <p>Total Emission: {{ emission }} kg CO2</p>
-        {% endif %}
-    </div>
-</div>
 
 <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 <script>
@@ -119,238 +123,226 @@ document.getElementById('testCreateRouteBtn').addEventListener('click', function
     console.log('Test button clicked. Calling createRouteAndUpdateSelect with:', start, end, cityDistance, highwayDistance);
     createRouteAndUpdateSelect(start, end, cityDistance, highwayDistance);
 });
-        // Initialize the map
-        console.log('Initializing map...');
-        var map = L.map('map').setView([51.505, -0.09], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
+// Initialize the map
+console.log('Initializing map...');
+var map = L.map('map').setView([51.505, -0.09], 13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap contributors'
+}).addTo(map);
 
-        var startMarker, endMarker;
+var startMarker, endMarker;
 
-        // Function to perform geocoding
-        async function geocode(query) {
-            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
-            try {
-                console.log('Geocoding query:', query);
-                const response = await fetch(url);
-                const data = await response.json();
-                if (data && data.length > 0) {
-                    return {
-                        lat: parseFloat(data[0].lat),
-                        lng: parseFloat(data[0].lon)
-                    };
-                }
-            } catch (error) {
-                console.error('Geocoding error:', error);
-            }
-            return null;
+// Function to perform geocoding
+async function geocode(query) {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+    try {
+        console.log('Geocoding query:', query);
+        const response = await fetch(url);
+        const data = await response.json();
+        if (data && data.length > 0) {
+            return {
+                lat: parseFloat(data[0].lat),
+                lng: parseFloat(data[0].lon)
+            };
         }
+    } catch (error) {
+        console.error('Geocoding error:', error);
+    }
+    return null;
+}
 
         // Update markers from input fields
         function updateMarkerFromInput(inputId, markerVar, popupText) {
             var input = document.getElementById(inputId);
-            input.addEventListener('input', async function() {
-                var val = input.value.trim();
-                var parts = val.split(',');
-                let latlng = null;
-                
-                if (parts.length === 2) {
-                    var lat = parseFloat(parts[0]);
-                    var lng = parseFloat(parts[1]);
-                    if (!isNaN(lat) && !isNaN(lng)) {
-                        latlng = L.latLng(lat, lng);
+            let debounceTimeout = null;
+            input.addEventListener('input', function() {
+                clearTimeout(debounceTimeout);
+                debounceTimeout = setTimeout(async function() {
+                    var val = input.value.trim();
+                    var parts = val.split(',');
+                    let latlng = null;
+                    
+                    if (parts.length === 2) {
+                        var lat = parseFloat(parts[0]);
+                        var lng = parseFloat(parts[1]);
+                        if (!isNaN(lat) && !isNaN(lng)) {
+                            latlng = L.latLng(lat, lng);
+                        }
+                    } else if (val.length > 0) {
+                        latlng = await geocode(val);
+                        if (latlng === null) {
+                            alert('Location not found: ' + val);
+                            return;
+                        }
+                        // Update visible input with coordinates after geocoding
+                        input.value = latlng.lat.toFixed(5) + ", " + latlng.lng.toFixed(5);
                     }
-                } else if (val.length > 0) {
-                    latlng = await geocode(val);
-                    if (latlng === null) {
-                        alert('Location not found: ' + val);
-                        return;
+                    
+                    if (latlng) {
+                        if (window[markerVar]) {
+                            window[markerVar].setLatLng(latlng);
+                            window[markerVar].openPopup();
+                        } else {
+                            window[markerVar] = L.marker(latlng, {draggable:true}).addTo(map);
+                            window[markerVar].bindPopup(popupText).openPopup();
+                            window[markerVar].on('dragend', function(event) {
+                                var position = event.target.getLatLng();
+                                input.value = position.lat.toFixed(5) + ", " + position.lng.toFixed(5);
+                                // Update hidden coordinate input
+                                if (inputId === 'start') {
+                                    document.getElementById('start_coords').value = input.value;
+                                } else if (inputId === 'end') {
+                                    document.getElementById('end_coords').value = input.value;
+                                }
+                                updateDistance();
+                            });
+                        }
+                        // Update hidden coordinate input on input event
+                        if (inputId === 'start') {
+                            document.getElementById('start_coords').value = input.value;
+                        } else if (inputId === 'end') {
+                            document.getElementById('end_coords').value = input.value;
+                        }
+                        updateDistance();
+                        map.panTo(latlng);
                     }
-                    // Update visible input with coordinates after geocoding
-                    input.value = latlng.lat.toFixed(5) + ", " + latlng.lng.toFixed(5);
-                }
-                
-                if (latlng) {
-                    if (window[markerVar]) {
-                        window[markerVar].setLatLng(latlng);
-                        window[markerVar].openPopup();
-                    } else {
-                        window[markerVar] = L.marker(latlng, {draggable:true}).addTo(map);
-                        window[markerVar].bindPopup(popupText).openPopup();
-                        window[markerVar].on('dragend', function(event) {
-                            var position = event.target.getLatLng();
-                            input.value = position.lat.toFixed(5) + ", " + position.lng.toFixed(5);
-                            // Update hidden coordinate input
-                            if (inputId === 'start') {
-                                document.getElementById('start_coords').value = input.value;
-                            } else if (inputId === 'end') {
-                                document.getElementById('end_coords').value = input.value;
-                            }
-                            updateDistance();
-                        });
-                    }
-                    // Update hidden coordinate input on input event
-                    if (inputId === 'start') {
-                        document.getElementById('start_coords').value = input.value;
-                    } else if (inputId === 'end') {
-                        document.getElementById('end_coords').value = input.value;
-                    }
-                    updateDistance();
-                    map.panTo(latlng);
-                }
+                }, 500);
             });
         }
 
-        // Function to create route via API and update route select
-        async function createRouteAndUpdateSelect(start, end, cityDistance, highwayDistance) {
-            console.log('Creating route via API with:', start, end, cityDistance, highwayDistance);
-            const routeName = `${start} to ${end}`;
-            const startParts = start.split(',');
-            const endParts = end.split(',');
-            if (startParts.length !== 2 || endParts.length !== 2) {
-                alert('Invalid start or end coordinates');
-                return;
-            }
-            const data = {
-                name: routeName,
-                city_distance: cityDistance,
-                highway_distance: highwayDistance,
-                start_lat: parseFloat(startParts[0].trim()),
-                start_lng: parseFloat(startParts[1].trim()),
-                end_lat: parseFloat(endParts[0].trim()),
-                end_lng: parseFloat(endParts[1].trim())
-            };
-            try {
-                const csrfToken = getCookie('csrftoken');
-                console.log('CSRF Token:', csrfToken);
-                const response = await fetch('/api/create_route/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrfToken
-                    },
-                    body: JSON.stringify(data)
-                });
-                const result = await response.json();
-                console.log('API response:', result);
-                if (result.success) {
-                    const routeSelect = document.getElementById('id_route');
-                    const option = document.createElement('option');
-                    option.value = result.route_id;
-                    option.text = result.route_name;
-                    option.selected = true;
-                    routeSelect.appendChild(option);
-                } else {
-                    alert('Failed to create route: ' + result.error);
-                }
-            } catch (error) {
-                alert('Error creating route: ' + error);
-            }
-        }
-
-        // Helper function to get CSRF token cookie
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-
-        // Calculate and update distance between markers
-        function updateDistance() {
-            if (startMarker && endMarker) {
-                var latlngs = [startMarker.getLatLng(), endMarker.getLatLng()];
-                var distance = latlngs[0].distanceTo(latlngs[1]) / 1000; // in km
-                document.getElementById('city_distance').value = distance.toFixed(2);
-                document.getElementById('highway_distance').value = 0; // Default to 0 for highway distance
-                
-                // Auto-fill the route field if empty and create route via API
-                var routeField = document.getElementById('id_route');
-                var start = document.getElementById('start_coords').value;
-                var end = document.getElementById('end_coords').value;
-                if (!routeField.value) {
-                    if (start && end) {
-                        createRouteAndUpdateSelect(start, end, distance.toFixed(2), 0);
-                    }
-                }
-            }
-        }
-
-        // Calculate and update distance between markers
-        function updateDistance() {
-            if (startMarker && endMarker) {
-                var latlngs = [startMarker.getLatLng(), endMarker.getLatLng()];
-                var distance = latlngs[0].distanceTo(latlngs[1]) / 1000; // in km
-                document.getElementById('city_distance').value = distance.toFixed(2);
-                document.getElementById('highway_distance').value = 0; // Default to 0 for highway distance
-                
-                // Auto-fill the route field if empty
-                var routeField = document.getElementById('id_route');
-                if (!routeField.value) {
-                    var start = document.getElementById('start').value;
-                    var end = document.getElementById('end').value;
-                    if (start && end) {
-                        routeField.value = start + ' to ' + end;
-                    }
-                }
-            }
-        }
-
-        // Initialize map click handler
-        map.on('click', function(e) {
-            if (!startMarker) {
-                startMarker = L.marker(e.latlng, {draggable:true}).addTo(map);
-                startMarker.bindPopup("Start Point").openPopup();
-                document.getElementById('start').value = e.latlng.lat.toFixed(5) + ", " + e.latlng.lng.toFixed(5);
-                startMarker.on('dragend', function(event) {
-                    var position = event.target.getLatLng();
-                    document.getElementById('start').value = position.lat.toFixed(5) + ", " + position.lng.toFixed(5);
-                    updateDistance();
-                });
-            } else if (!endMarker) {
-                endMarker = L.marker(e.latlng, {draggable:true}).addTo(map);
-                endMarker.bindPopup("End Point").openPopup();
-                document.getElementById('end').value = e.latlng.lat.toFixed(5) + ", " + e.latlng.lng.toFixed(5);
-                endMarker.on('dragend', function(event) {
-                    var position = event.target.getLatLng();
-                    document.getElementById('end').value = position.lat.toFixed(5) + ", " + position.lng.toFixed(5);
-                    updateDistance();
-                });
-                updateDistance();
-            } else {
-                alert("Both start and end points are already set. Drag markers to change location.");
-            }
+// Function to create route via API and update route select
+async function createRouteAndUpdateSelect(start, end, cityDistance, highwayDistance) {
+    console.log('Creating route via API with:', start, end, cityDistance, highwayDistance);
+    const routeName = `${start} to ${end}`;
+    const startParts = start.split(',');
+    const endParts = end.split(',');
+    if (startParts.length !== 2 || endParts.length !== 2) {
+        alert('Invalid start or end coordinates');
+        return;
+    }
+    const data = {
+        name: routeName,
+        city_distance: cityDistance,
+        highway_distance: highwayDistance,
+        start_lat: parseFloat(startParts[0].trim()),
+        start_lng: parseFloat(startParts[1].trim()),
+        end_lat: parseFloat(endParts[0].trim()),
+        end_lng: parseFloat(endParts[1].trim())
+    };
+    try {
+        const csrfToken = getCookie('csrftoken');
+        console.log('CSRF Token:', csrfToken);
+        const response = await fetch('/api/create_route/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(data)
         });
+        const result = await response.json();
+        console.log('API response:', result);
+        if (result.success) {
+            const routeSelect = document.getElementById('id_route');
+            const option = document.createElement('option');
+            option.value = result.route_id;
+            option.text = result.route_name;
+            option.selected = true;
+            routeSelect.appendChild(option);
+        } else {
+            alert('Failed to create route: ' + result.error);
+        }
+    } catch (error) {
+        alert('Error creating route: ' + error);
+    }
+}
 
-        // Initialize input listeners
+// Helper function to get CSRF token cookie
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Calculate and update distance between markers
+function updateDistance() {
+    if (startMarker && endMarker) {
+        var latlngs = [startMarker.getLatLng(), endMarker.getLatLng()];
+        var distance = latlngs[0].distanceTo(latlngs[1]) / 1000; // in km
+        document.getElementById('city_distance').value = distance.toFixed(2);
+        document.getElementById('highway_distance').value = 0; // Default to 0 for highway distance
+        
+        // Auto-fill the route field if empty and create route via API
+        var routeField = document.getElementById('id_route');
+        var start = document.getElementById('start_coords').value;
+        var end = document.getElementById('end_coords').value;
+        if (!routeField.value) {
+            if (start && end) {
+                createRouteAndUpdateSelect(start, end, distance.toFixed(2), 0);
+            }
+        }
+    }
+}
+
+// Initialize map click handler
+map.on('click', function(e) {
+    if (!startMarker) {
+        startMarker = L.marker(e.latlng, {draggable:true}).addTo(map);
+        startMarker.bindPopup("Start Point").openPopup();
+        document.getElementById('start').value = e.latlng.lat.toFixed(5) + ", " + e.latlng.lng.toFixed(5);
+        document.getElementById('start_coords').value = document.getElementById('start').value;
+        startMarker.on('dragend', function(event) {
+            var position = event.target.getLatLng();
+            document.getElementById('start').value = position.lat.toFixed(5) + ", " + position.lng.toFixed(5);
+            document.getElementById('start_coords').value = document.getElementById('start').value;
+            updateDistance();
+        });
+    } else if (!endMarker) {
+        endMarker = L.marker(e.latlng, {draggable:true}).addTo(map);
+        endMarker.bindPopup("End Point").openPopup();
+        document.getElementById('end').value = e.latlng.lat.toFixed(5) + ", " + e.latlng.lng.toFixed(5);
+        document.getElementById('end_coords').value = document.getElementById('end').value;
+        endMarker.on('dragend', function(event) {
+            var position = event.target.getLatLng();
+            document.getElementById('end').value = position.lat.toFixed(5) + ", " + position.lng.toFixed(5);
+            document.getElementById('end_coords').value = document.getElementById('end').value;
+            updateDistance();
+        });
+        updateDistance();
+    } else {
+        alert("Both start and end points are already set. Drag markers to change location.");
+    }
+});
+
+// Initialize input listeners
+updateMarkerFromInput('start', 'startMarker', 'Start Point');
+updateMarkerFromInput('end', 'endMarker', 'End Point');
+
+// Initialize markers if inputs have values on page load
+window.onload = function() {
+    var startInput = document.getElementById('start');
+    var endInput = document.getElementById('end');
+    if (startInput.value) {
         updateMarkerFromInput('start', 'startMarker', 'Start Point');
+        var event = new Event('input');
+        startInput.dispatchEvent(event);
+    }
+    if (endInput.value) {
         updateMarkerFromInput('end', 'endMarker', 'End Point');
-
-        // Initialize markers if inputs have values on page load
-        window.onload = function() {
-            var startInput = document.getElementById('start');
-            var endInput = document.getElementById('end');
-            if (startInput.value) {
-                updateMarkerFromInput('start', 'startMarker', 'Start Point');
-                var event = new Event('input');
-                startInput.dispatchEvent(event);
-            }
-            if (endInput.value) {
-                updateMarkerFromInput('end', 'endMarker', 'End Point');
-                var event = new Event('input');
-                endInput.dispatchEvent(event);
-            }
-        };
-    </script>
+        var event = new Event('input');
+        endInput.dispatchEvent(event);
+    }
+};
+</script>
 </body>
 </html>

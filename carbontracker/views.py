@@ -29,7 +29,7 @@ class JourneyForm(forms.ModelForm):
 
     class Meta:
         model = Journey
-        fields = ['route', 'car', 'journey_date', 'trans_mode', 'route_save']
+        fields = ['route', 'car', 'journey_date', 'trans_mode', 'route_save', 'driving_conditions']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -197,29 +197,57 @@ import json
 def emission_fuel_charts(request):
     import datetime
     import json
+    from collections import defaultdict
     current_year = datetime.datetime.now().year
+    # Define degradation factor for driving conditions only (example values)
+    driving_conditions_factors = {
+        'normal': 0.0,
+        'heavy_traffic': 0.05,
+        'off_road': 0.1,
+    }
+
     # Get cars used in journeys
     journey_cars = Car.objects.filter(journey__isnull=False).distinct()
-    emission_data = []
-    fuel_data = []
+    emission_by_make = defaultdict(float)
+    fuel_by_make = defaultdict(float)
+    count_by_make = defaultdict(int)
     for car in journey_cars:
         try:
             vehicle_year = int(car.year)
         except:
             vehicle_year = current_year
         vehicle_age = current_year - vehicle_year
-        degradation_factor = 1 + (0.01 * vehicle_age)
+        # Get driving conditions from journeys of this car
+        journeys = car.journey_set.all()
+        if journeys.exists():
+            # Use the most common driving condition among journeys
+            from collections import Counter
+            driving_conditions_list = [j.driving_conditions for j in journeys]
+            most_common_condition = Counter(driving_conditions_list).most_common(1)[0][0]
+            driving_conditions_factor = driving_conditions_factors.get(most_common_condition, 0.0)
+        else:
+            driving_conditions_factor = 0.0
+        degradation_factor = 1 + (0.01 * vehicle_age) + driving_conditions_factor
         avg_km_per_gallon = (car.city_km_per_gallon + car.highway_km_per_gallon) / 2 if car.city_km_per_gallon and car.highway_km_per_gallon else 0
         fuel_used_per_100km = 100 / avg_km_per_gallon if avg_km_per_gallon else 0
         fuel_used_per_100km *= degradation_factor
         emission_per_100km = fuel_used_per_100km * car.kg_per_gallon * degradation_factor
+        make_label = car.make
+        emission_by_make[make_label] += emission_per_100km
+        fuel_by_make[make_label] += fuel_used_per_100km
+        count_by_make[make_label] += 1
+    emission_data = []
+    fuel_data = []
+    for make in emission_by_make:
+        avg_emission = emission_by_make[make] / count_by_make[make]
+        avg_fuel = fuel_by_make[make] / count_by_make[make]
         emission_data.append({
-            'label': f"{car.make} {car.model} ({car.year})",
-            'value': emission_per_100km,
+            'label': make,
+            'value': avg_emission,
         })
         fuel_data.append({
-            'label': f"{car.make} {car.model} ({car.year})",
-            'value': fuel_used_per_100km,
+            'label': make,
+            'value': avg_fuel,
         })
     emission_data_json = json.dumps(emission_data)
     fuel_data_json = json.dumps(fuel_data)
