@@ -48,7 +48,24 @@ def journey_add(request):
             journey = form.save(commit=False)
             # Create or update Route with distances and coordinates
             route = journey.route
-            if route:
+            if not route and start and end:
+                # Create new route if not selected and start/end provided
+                try:
+                    start_lat, start_lng = map(float, start.split(','))
+                    end_lat, end_lng = map(float, end.split(','))
+                    route_name = f"{start} to {end}"
+                    route = Route.objects.create(
+                        name=route_name,
+                        city_distance=float(city_distance) if city_distance else 0,
+                        highway_distance=float(highway_distance) if highway_distance else 0,
+                        start_lat=start_lat,
+                        start_lng=start_lng,
+                        end_lat=end_lat,
+                        end_lng=end_lng
+                    )
+                except (ValueError, TypeError):
+                    route = None
+            elif route:
                 try:
                     route.city_distance = float(city_distance)
                     route.highway_distance = float(highway_distance)
@@ -67,7 +84,9 @@ def journey_add(request):
                     pass
             journey.route = route
             journey.save()
-            return redirect('journey_list')
+            # Instead of redirecting, re-render form with new route selected
+            form = JourneyForm(instance=journey)
+            return render(request, 'carbontracker/journey_add.html', {'form': form})
     else:
         form = JourneyForm()
     return render(request, 'carbontracker/journey_add.html', {'form': form})
@@ -171,6 +190,10 @@ def fuel_calculator(request):
         form = FuelCalculatorForm()
     return render(request, 'carbontracker/fuel_calculator.html', {'form': form, 'result': result})
 
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+
 def emission_fuel_charts(request):
     import datetime
     import json
@@ -204,3 +227,29 @@ def emission_fuel_charts(request):
         'emission_data': emission_data_json,
         'fuel_data': fuel_data_json,
     })
+
+@csrf_exempt
+def api_create_route(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            name = data.get('name')
+            city_distance = float(data.get('city_distance', 0))
+            highway_distance = float(data.get('highway_distance', 0))
+            start_lat = float(data.get('start_lat'))
+            start_lng = float(data.get('start_lng'))
+            end_lat = float(data.get('end_lat'))
+            end_lng = float(data.get('end_lng'))
+            route = Route.objects.create(
+                name=name,
+                city_distance=city_distance,
+                highway_distance=highway_distance,
+                start_lat=start_lat,
+                start_lng=start_lng,
+                end_lat=end_lat,
+                end_lng=end_lng
+            )
+            return JsonResponse({'success': True, 'route_id': route.id, 'route_name': route.name})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})

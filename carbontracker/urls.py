@@ -14,4 +14,5 @@ urlpatterns = [
     path('fuel-calculator/', views.fuel_calculator, name='fuel_calculator'),
     path('emission-fuel-charts/', views.emission_fuel_charts, name='emission_fuel_charts'),
     path('journeys/add/', views.journey_add, name='journey_add'),
+    path('api/create_route/', views.api_create_route, name='api_create_route'),
 ]
