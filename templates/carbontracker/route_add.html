@@ -1,15 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8" />
     <title>Add Route - CarbonOmitter</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Add New Route</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Save Route</button>
-    </form>
-    <a href="{% url 'route_list' %}">Back to Routes</a>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-6 font-sans">
+
+    <header class="w-full max-w-5xl mb-8">
+        <h1 class="text-4xl font-bold text-gray-800 mb-4">Add New Route</h1>
+        <a href="{% url 'route_list' %}" class="inline-block bg-blue-600 text-white px-5 py-2 rounded shadow hover:bg-blue-700 transition">
+            ← Back to Routes
+        </a>
+    </header>
+
+    <main class="w-full max-w-5xl bg-white rounded shadow p-6">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded shadow hover:bg-blue-700 transition">
+                Save Route
+            </button>
+        </form>
+    </main>
+
 </body>
 </html>
