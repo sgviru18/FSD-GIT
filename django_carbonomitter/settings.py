@@ -67,27 +67,15 @@ WSGI_APPLICATION = 'django_carbonomitter.wsgi.application'
 
 DATABASES = {
     'default': {
-        # Uncomment and configure for MySQL
-        # 'ENGINE': 'django.db.backends.mysql',
-        # 'NAME': 'your_mysql_db_name',
-        # 'USER': 'your_mysql_user',
-        # 'PASSWORD': 'your_mysql_password',
-        # 'HOST': 'localhost',
-        # 'PORT': '3306',
-
-        # Uncomment and configure for MongoDB using djongo
-        # 'ENGINE': 'djongo',
-        # 'NAME': 'your_mongodb_name',
-        # 'ENFORCE_SCHEMA': False,
-        # 'CLIENT': {
-        #     'host': 'mongodb://localhost:27017',
-        # },
-
-        # Default SQLite configuration
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'carbon_db',
+        'USER': 'carbon_user',
+        'PASSWORD': 'carbon_pass',
+        'HOST': '127.0.0.1',
+        'PORT': '3307',
     }
 }
+
 
 # Password validation
 
