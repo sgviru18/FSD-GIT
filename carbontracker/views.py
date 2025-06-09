@@ -118,26 +118,30 @@ def journey_add(request):
         highway_distance = request.POST.get('highway_distance')
         if form.is_valid():
             journey = form.save(commit=False)
-            # Create or update Route with distances and coordinates
             route = journey.route
-            if not route and start and end:
-                # Create new route if not selected and start/end provided
-                try:
-                    start_lat, start_lng = map(float, start.split(','))
-                    end_lat, end_lng = map(float, end.split(','))
-                    route_name = f"{start} to {end}"
-                    route = Route.objects.create(
-                        name=route_name,
-                        city_distance=float(city_distance) if city_distance else 0,
-                        highway_distance=float(highway_distance) if highway_distance else 0,
-                        start_lat=start_lat,
-                        start_lng=start_lng,
-                        end_lat=end_lat,
-                        end_lng=end_lng
-                    )
-                except (ValueError, TypeError):
+            route_save = form.cleaned_data.get('route_save', False)
+            # Only create or update Route if 'route_save' is checked and no route is selected
+            if route_save and not route:
+                if start and end:
+                    try:
+                        start_lat, start_lng = map(float, start.split(','))
+                        end_lat, end_lng = map(float, end.split(','))
+                        route_name = f"{start} to {end}"
+                        route = Route.objects.create(
+                            name=route_name,
+                            city_distance=float(city_distance) if city_distance else 0,
+                            highway_distance=float(highway_distance) if highway_distance else 0,
+                            start_lat=start_lat,
+                            start_lng=start_lng,
+                            end_lat=end_lat,
+                            end_lng=end_lng
+                        )
+                    except (ValueError, TypeError):
+                        route = None
+                else:
+                    # If no start/end provided, do not create a new route
                     route = None
-            elif route:
+            elif route_save and route:
                 try:
                     route.city_distance = float(city_distance)
                     route.highway_distance = float(highway_distance)

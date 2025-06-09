@@ -79,6 +79,11 @@ class Route(models.Model):
             self.start_state, self.start_city, self.start_area = self.reverse_geocode(self.start_lat, self.start_lng)
         if self.end_lat and self.end_lng:
             self.end_state, self.end_city, self.end_area = self.reverse_geocode(self.end_lat, self.end_lng)
+        # Set a human-readable name after reverse geocoding
+        if self.start_city and self.end_city:
+            self.name = f"{self.start_city} to {self.end_city}"
+        elif self.start_state and self.end_state:
+            self.name = f"{self.start_state} to {self.end_state}"
         super().save(*args, **kwargs)
 
     def __str__(self):

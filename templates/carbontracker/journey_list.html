@@ -21,6 +21,7 @@
             <thead>
                 <tr class="bg-green-600 text-white">
                     <th class="border border-gray-300 px-4 py-2 text-left">Date</th>
+                    <th class="border border-gray-300 px-4 py-2 text-left">Route</th>
                     <th class="border border-gray-300 px-4 py-2 text-left">Transport Mode</th>
                     <th class="border border-gray-300 px-4 py-2 text-left">Vehicle</th>
                     <th class="border border-gray-300 px-4 py-2 text-right">Emission (kg CO2)</th>
@@ -30,6 +31,7 @@
                 {% for journey in journeys %}
                 <tr class="hover:bg-green-50">
                     <td class="border border-gray-300 px-4 py-2">{{ journey.journey_date }}</td>
+                    <td class="border border-gray-300 px-4 py-2">{{ journey.route.name }}</td>
                     <td class="border border-gray-300 px-4 py-2">{{ journey.trans_mode }}</td>
                     <td class="border border-gray-300 px-4 py-2">{% if journey.car and journey.car.nickname %}{{ journey.car.nickname }}{% else %}No Vehicle{% endif %}</td>
                     <td class="border border-gray-300 px-4 py-2 text-right">{{ journey.total_emission|floatformat:2 }}</td>
