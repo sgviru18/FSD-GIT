@@ -1,8 +1,16 @@
 from django.urls import path
 from . import views
 
+from django.urls import path
+from . import views
+from django.shortcuts import redirect
+
+def redirect_to_login(request):
+    return redirect('login')
+
 urlpatterns = [
-    path('', views.home, name='home'),
+    path('', redirect_to_login, name='root_redirect'),
+    path('home/', views.home, name='home'),
     path('journeys/', views.journey_list, name='journey_list'),
     path('journeys/add/', views.journey_add, name='journey_add'),
     path('vehicles/', views.vehicle_list, name='vehicle_list'),  
@@ -15,4 +23,7 @@ urlpatterns = [
     path('emission-fuel-charts/', views.emission_fuel_charts, name='emission_fuel_charts'),
     path('emission-ranking/', views.emission_ranking, name='emission_ranking'),
     path('api/create_route/', views.api_create_route, name='api_create_route'),
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('register/', views.register_view, name='register'),
 ]

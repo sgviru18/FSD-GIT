@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Register - Carbon Tracker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+        .register-container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px 50px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px 0 rgba(255, 105, 97, 0.37);
+            width: 350px;
+            text-align: center;
+        }
+        h2 {
+            margin-bottom: 30px;
+            font-weight: 700;
+            font-size: 28px;
+            color: #d63031;
+            letter-spacing: 1.2px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        input[type="text"],
+        input[type="password"],
+        input[type="email"] {
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border: 1px solid #d63031;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: box-shadow 0.3s ease;
+        }
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        input[type="email"]:focus {
+            box-shadow: 0 0 8px 2px #ff7675;
+        }
+        button {
+            padding: 12px;
+            background: #d63031;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background: #b71c1c;
+        }
+        p {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        a {
+            color: #d63031;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .errorlist {
+            color: #e17055;
+            margin-bottom: 15px;
+            list-style: none;
+            padding-left: 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <h2>Create Your Account</h2>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            {% for field in form %}
+                {{ field.errors }}
+                {% if field.name == "username" %}
+                    <input type="text" name="username" placeholder="Choose a username" required>
+                {% elif field.name == "email" %}
+                    <input type="email" name="email" placeholder="Enter your email address" required>
+                {% elif field.name == "password1" %}
+                    <input type="password" name="password1" placeholder="Create a password" required>
+                {% elif field.name == "password2" %}
+                    <input type="password" name="password2" placeholder="Confirm your password" required>
+                {% else %}
+                    {{ field }}
+                {% endif %}
+            {% endfor %}
+            <button type="submit">Register</button>
+        </form>
+        <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+    </div>
+</body>
+</html>

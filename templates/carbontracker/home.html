@@ -8,6 +8,12 @@
 </head>
 <body class="bg-gradient-to-br from-green-100 to-green-300 min-h-screen flex flex-col items-center justify-center font-sans">
 
+    <div style="position: fixed; top: 10px; right: 20px; z-index: 50;">
+        <a href="{% url 'logout' %}" class="inline-block bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow transition duration-300 ease-in-out">
+            Logout
+        </a>
+    </div>
+
     <!-- Header file -->
     <header class="mb-10 text-center">
         <h1 class="text-5xl font-bold text-green-900 drop-shadow-md">Welcome to <span class="text-green-700">EcoTrack</span></h1>
